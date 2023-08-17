@@ -31,7 +31,7 @@ def validate_arguments_and_run(arguments: argparse.Namespace, tools: list[Tool])
             break
 
 
-def setup_tools():
+def setup_tools() -> None:
     tools = [MoneyLost(group="money_lost")]
 
     arguments = parser_setup(tools)
