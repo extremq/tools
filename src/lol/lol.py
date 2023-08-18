@@ -82,8 +82,8 @@ class LeagueOfLegends(Tool):
         self.puuid = get_puuid(self.summoner_name, self.region)
         print_info(f"Found summoner {self.summoner_name!r} with puuid {self.puuid!r}.")
 
-        self.match_history = get_match_history(self.puuid, self.start_date, self.end_date, 0, 100)
-        print_info(f"Found {len(self.match_history)!r} matches.")
+        self.match_history = get_match_history(self.puuid, self.start_date, self.end_date)
+        print_info(f"Finished getting {len(self.match_history)!r} matches.")
 
         self.match_data = turn_data_to_dataframe(self.match_history, self.puuid)
         print_info(f"Turned data into dataframe.")
@@ -91,4 +91,4 @@ class LeagueOfLegends(Tool):
 
         self.match_data.to_csv(arguments.output, index=False, encoding="utf-8")
 
-        print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}")
+        print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}.")
