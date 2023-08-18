@@ -87,29 +87,30 @@ def get_match_history(puuid: str, start_time: str, end_time: str):
 
 
 def filter_match_data(match_data: dir, puuid: str):
-    filtered_data = {
-        "id": match_data["metadata"]["matchId"],
-        "start_time": timestamp_milis_to_datetime(match_data["info"]["gameStartTimestamp"]),
-        "stop_time": timestamp_milis_to_datetime(match_data["info"]["gameEndTimestamp"]),
-        "duration_in_seconds": match_data["info"]["gameDuration"],
-        "duration_in_minutes": match_data["info"]["gameDuration"] / 60,
-        "gamemode": match_data["info"]["gameMode"],
-        "kda_formatted": None,
-        "kda": None,
-        "win": None,
-        "champion": None,
-    }
+    participant_dictionary = {}
 
     for player in match_data["info"]["participants"]:
-        if player["puuid"] == puuid:
-            filtered_data["kda_formatted"] = f"{player['kills']}/{player['deaths']}/{player['assists']}"
-            player["deaths"] = 1 if player["deaths"] == 0 else player["deaths"]
-            filtered_data["kda"] = (player["kills"] + player["assists"]) / player["deaths"]
-            filtered_data["win"] = player["win"]
-            filtered_data["champion"] = player["championName"]
-            break
+        if player["puuid"] != puuid:
+            continue
 
-    return filtered_data
+        participant_dictionary = get_simple_values_dict(player)
+        break
+
+    match_info = get_simple_values_dict(match_data["info"])
+
+    return {**participant_dictionary, **match_info}
+
+
+def get_simple_values_dict(dictionary: dir):
+    simple_values_dict = {}
+
+    for key, value in dictionary.items():
+        if isinstance(value, dict) or isinstance(value, list):
+            continue
+
+        simple_values_dict[key] = value
+
+    return simple_values_dict
 
 
 @exponential_retry
@@ -131,7 +132,19 @@ def get_match_data(match_id: str):
 
 
 def turn_data_to_dataframe(match_ids: list[dir], puuid: str):
-    matches_data = [get_match_data(match_id) for match_id in match_ids]
-    filtered_matches_data = [filter_match_data(match_data, puuid) for match_data in matches_data]
+    filtered_matches = []
 
-    return pd.DataFrame(filtered_matches_data)
+    with open("match_data.csv", "w", encoding="utf-8") as f:
+        f.write("")
+
+    for match_id in match_ids:
+        match_data = get_match_data(match_id)
+        filtered_match_data = filter_match_data(match_data, puuid)
+        filtered_matches.append(filtered_match_data)
+        pd.DataFrame([filtered_match_data]).to_csv(f"match_data.csv",
+                                                   mode="a",
+                                                   header=False,
+                                                   index=False,
+                                                   encoding="utf-8")
+
+    return pd.DataFrame(filtered_matches)
