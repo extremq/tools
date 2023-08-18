@@ -1,5 +1,4 @@
 import argparse
-from .utils import check_for_env_variables
 from abc import ABC, abstractmethod
 
 
@@ -10,8 +9,6 @@ class Tool(ABC):
 
     def __init__(self, group: str):
         self.group = group
-
-        check_for_env_variables(self.required_env_variables, self.group)
 
     @abstractmethod
     def add_argument_group(self, subparsers) -> None:

@@ -1,5 +1,5 @@
 import os
-
+import argparse
 from src.tool import Tool
 import requests
 
@@ -70,7 +70,7 @@ class MoneyLost(Tool):
             dest="bought_amount"
         )
 
-    def check_arguments(self, arguments) -> None:
+    def check_arguments(self, arguments: argparse.Namespace) -> None:
         if arguments.from_currency.upper() == arguments.to_currency.upper():
             raise ValueError(f"From currency ({arguments.from_currency.upper()!r}) "
                              f"and To currency ({arguments.to_currency.upper()!r}) cannot be the same.")
@@ -100,7 +100,7 @@ class MoneyLost(Tool):
         self.sold_amount = arguments.sold_amount
         self.bought_amount = arguments.bought_amount
 
-    def run(self, arguments) -> None:
+    def run(self, arguments: argparse.Namespace) -> None:
         user_exchange_rate = self.sold_amount / self.bought_amount
         real_exchange_rate = self.from_currency["rate"] / self.to_currency["rate"]
 
