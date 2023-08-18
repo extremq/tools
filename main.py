@@ -1,7 +1,7 @@
 import argparse
 from dotenv import load_dotenv
 from src.utils import raise_if_file_not_found, print_error, print_success
-from src.money_lost import MoneyLost
+from src.money_lost.money_lost import MoneyLost
 from src.tool import Tool
 
 
