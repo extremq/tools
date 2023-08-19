@@ -31,7 +31,16 @@ Difference:      5.410 EUR
 ```
 
 # League of Legends Matches
-A tool to get the matches of a League of Legends player.
+A tool to get the matches of a League of Legends player. You can export the data to csv or excel.
+You will need:
+- Summoner name
+- Region
+- Start date (optional - defaults to today)
+- End date (optional - defaults to today)
+- Output file (optional - defaults to `output.csv`)
+
+Also, the Riot API limits the number of matches you can get to 100. For this reason,
+the tool will wait for the rate limit to reset and then get the next 100 matches.
 
 Requires Riot Games API key. You can get one [here](https://developer.riotgames.com/).
 
