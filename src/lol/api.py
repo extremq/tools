@@ -9,6 +9,9 @@ from src.utils import print_error, print_info
 class RiotRateLimit(Exception):
     pass
 
+class RiotForbidden(Exception):
+    pass
+
 
 def exponential_retry(func):
     # Wait 1, 2, 4, 8, 16, 32, 64, 128
@@ -41,6 +44,8 @@ def get_puuid(summoner_name: str, region: str):
         return data.get("puuid")
     elif response.status_code == 429:
         raise RiotRateLimit("Got rate limited.")
+    elif response.status_code == 403:
+        raise RiotForbidden("Forbidden, check if the API key is valid.")
 
     raise Exception(f"Cannot get puuid, check if the summoner "
                     f"name is correct or if the API key is valid. Error: {response.json()}")
@@ -70,6 +75,8 @@ def get_match_history(puuid: str, start_time: str, end_time: str):
                 return data
             elif response.status_code == 429:
                 raise RiotRateLimit("Got rate limited.")
+            elif response.status_code == 403:
+                raise RiotForbidden("Forbidden, check if the API key is valid.")
 
             raise Exception(f"Cannot get match history, check if the summoner "
                             f"name is correct or if the API key is valid. Error: {response.json()}")
@@ -127,6 +134,8 @@ def get_match_data(match_id: str):
         return data
     elif response.status_code == 429:
         raise RiotRateLimit("Got rate limited.")
+    elif response.status_code == 403:
+        raise RiotForbidden("Forbidden, check if the API key is valid.")
 
     raise Exception(f"Cannot get match data, check rate limits or if the API key is valid. Error: {response.json()}")
 

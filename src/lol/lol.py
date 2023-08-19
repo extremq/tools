@@ -89,6 +89,9 @@ class LeagueOfLegends(Tool):
         print_info(f"Turned data into dataframe.")
         print_info(f"First 5 rows of dataframe:\n{self.match_data.head(5)}")
 
-        self.match_data.to_csv(arguments.output, index=False, encoding="utf-8")
+        if arguments.output.endswith(".csv"):
+            self.match_data.to_csv(arguments.output, index=False, encoding="utf-8")
+        elif arguments.output.endswith(".xlsx"):
+            self.match_data.to_excel(arguments.output, index=False)
 
         print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}.")
