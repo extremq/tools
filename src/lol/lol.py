@@ -23,9 +23,6 @@ class LeagueOfLegends(Tool):
         self.start_date = None
         self.end_date = None
 
-        self.sheet_id = None
-        self.credentials_path = None
-
         self.full_data = False
 
     def add_argument_group(self, subparsers) -> None:
@@ -71,22 +68,6 @@ class LeagueOfLegends(Tool):
         )
 
         lol.add_argument(
-            "--google-sheets", "-g",
-            help="The Google Sheets ID",
-            type=str,
-            dest="google_sheets",
-            default=None
-        )
-
-        lol.add_argument(
-            "--google-credentials", "-c",
-            help="The Google Credentials file",
-            type=str,
-            dest="google_credentials",
-            default=None
-        )
-
-        lol.add_argument(
             "--full-data", "-f",
             help="Whether to get full data or not",
             action="store_true"
@@ -100,15 +81,10 @@ class LeagueOfLegends(Tool):
             print_info("Start date is in the future, setting it to today")
             arguments.start_date = self.today
 
-        if bool(arguments.google_sheets) ^ bool(arguments.google_credentials):
-            raise ValueError("You need to specify both google sheets and google credentials")
-
         self.summoner_name = arguments.summoner_name
         self.start_date = arguments.start_date
         self.end_date = arguments.end_date
         self.region = arguments.region
-        self.sheet_id = arguments.google_sheets
-        self.credentials_path = arguments.google_credentials
         self.full_data = arguments.full_data
 
     def run(self, arguments: argparse.Namespace) -> None:
@@ -126,11 +102,5 @@ class LeagueOfLegends(Tool):
             self.match_data.to_csv(arguments.output, index=False, encoding="utf-8")
         elif arguments.output.endswith(".xlsx"):
             self.match_data.to_excel(arguments.output, index=False)
-
-        if arguments.google_sheets and arguments.google_credentials:
-            print_info(f"Saving data to Google Sheets {arguments.google_sheets!r}...")
-            append_to_google_sheets(self.match_data, arguments.google_sheets, arguments.google_credentials)
-            print_success(f"Successfully saved {len(self.match_data)!r} "
-                          f"matches to Google Sheets {arguments.google_sheets!r}.")
 
         print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}.")

@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from src.utils import raise_if_file_not_found, print_error, print_success, check_for_env_variables
 from src.money_lost.money_lost import MoneyLost
 from src.lol.lol import LeagueOfLegends
+from src.sheets.sheets import Sheets
 from src.tool import Tool
 import traceback
 
@@ -35,7 +36,7 @@ def validate_arguments_and_run(arguments: argparse.Namespace, tools: list[Tool])
 
 
 def setup_tools() -> None:
-    tools = [MoneyLost(group="money_lost"), LeagueOfLegends(group="lol")]
+    tools = [MoneyLost(group="money_lost"), LeagueOfLegends(group="lol"), Sheets(group="sheets")]
 
     arguments = parser_setup(tools)
     validate_arguments_and_run(arguments, tools)
