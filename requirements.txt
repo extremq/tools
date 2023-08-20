@@ -1,3 +1,11 @@
-python-dotenv
-termcolor
-requests
+python-dotenv~=1.0.0
+termcolor~=2.3.0
+requests~=2.31.0
+pandas
+pytz
+openpyxl
+google-auth-httplib2
+google-api-python-client
+google-auth-oauthlib
+gspread
+gspread-dataframe
