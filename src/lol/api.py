@@ -4,10 +4,13 @@ import requests
 import pandas as pd
 import time
 from src.utils import print_error, print_info
+import gspread
+import gspread_dataframe
 
 
 class RiotRateLimit(Exception):
     pass
+
 
 class RiotForbidden(Exception):
     pass
@@ -93,19 +96,45 @@ def get_match_history(puuid: str, start_time: str, end_time: str):
     return match_history
 
 
-def filter_match_data(match_data: dir, puuid: str):
-    participant_dictionary = {}
+def filter_match_data(match_data: dir, puuid: str, full_data: bool):
+    if full_data:
+        participant_dictionary = {}
 
-    for player in match_data["info"]["participants"]:
-        if player["puuid"] != puuid:
-            continue
+        for player in match_data["info"]["participants"]:
+            if player["puuid"] != puuid:
+                continue
 
-        participant_dictionary = get_simple_values_dict(player)
-        break
+            participant_dictionary = get_simple_values_dict(player)
+            break
 
-    match_info = get_simple_values_dict(match_data["info"])
+        match_info = get_simple_values_dict(match_data["info"])
 
-    return {**participant_dictionary, **match_info}
+        return {**participant_dictionary, **match_info}
+    else:
+        simple_data = {
+            "id": match_data["metadata"]["matchId"],
+            "champion": None,
+            "start_time": timestamp_milis_to_datetime(match_data["info"]["gameStartTimestamp"]),
+            "stop_time": timestamp_milis_to_datetime(match_data["info"]["gameEndTimestamp"]),
+            "duration_in_seconds": match_data["info"]["gameDuration"],
+            "duration_in_minutes": match_data["info"]["gameDuration"] / 60,
+            "gamemode": match_data["info"]["gameMode"],
+            "queue": match_data["info"]["queueId"],
+            "kda_formatted": None,
+            "kda": None,
+            "win": None,
+        }
+
+        for player in match_data["info"]["participants"]:
+            if player["puuid"] == puuid:
+                simple_data["kda_formatted"] = f"{player['kills']}/{player['deaths']}/{player['assists']}"
+                player["deaths"] = 1 if player["deaths"] == 0 else player["deaths"]
+                simple_data["kda"] = (player["kills"] + player["assists"]) / player["deaths"]
+                simple_data["win"] = player["win"]
+                simple_data["champion"] = player["championName"]
+                break
+
+        return simple_data
 
 
 def get_simple_values_dict(dictionary: dir):
@@ -140,7 +169,7 @@ def get_match_data(match_id: str):
     raise Exception(f"Cannot get match data, check rate limits or if the API key is valid. Error: {response.json()}")
 
 
-def turn_data_to_dataframe(match_ids: list[dir], puuid: str):
+def turn_data_to_dataframe(match_ids: list[dir], puuid: str, full_data: bool):
     filtered_matches = []
 
     with open("match_data.csv", "w", encoding="utf-8") as f:
@@ -148,7 +177,7 @@ def turn_data_to_dataframe(match_ids: list[dir], puuid: str):
 
     for match_id in match_ids:
         match_data = get_match_data(match_id)
-        filtered_match_data = filter_match_data(match_data, puuid)
+        filtered_match_data = filter_match_data(match_data, puuid, full_data)
         filtered_matches.append(filtered_match_data)
         pd.DataFrame([filtered_match_data]).to_csv(f"match_data.csv",
                                                    mode="a",
@@ -157,3 +186,23 @@ def turn_data_to_dataframe(match_ids: list[dir], puuid: str):
                                                    encoding="utf-8")
 
     return pd.DataFrame(filtered_matches)
+
+
+def append_to_google_sheets(dataframe: pd.DataFrame, spreadsheet_id: str, credentials: str):
+    gc = gspread.service_account(filename=credentials)
+    wks = gc.open_by_key(spreadsheet_id).sheet1
+
+    new_df = dataframe.copy()
+
+    sheet_df = gspread_dataframe.get_as_dataframe(wks, evaluate_formulas=True, header=0)
+    sheet_df = sheet_df.dropna(how='all')
+    sheet_df = sheet_df.dropna(axis=1, how='all')
+
+    rows_to_append = new_df[~new_df['id'].isin(sheet_df['id'])]
+
+    if not rows_to_append.empty:
+        first_empty_row = len(wks.col_values(1)) + 1
+        gspread_dataframe.set_with_dataframe(wks, rows_to_append, row=first_empty_row, col=1, include_index=False,
+                                             include_column_header=first_empty_row == 1)
+    else:
+        print_info("No new matches to append.")

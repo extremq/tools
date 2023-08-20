@@ -7,3 +7,5 @@ openpyxl
 google-auth-httplib2
 google-api-python-client
 google-auth-oauthlib
+gspread
+gspread-dataframe

@@ -26,6 +26,8 @@ class LeagueOfLegends(Tool):
         self.sheet_id = None
         self.credentials_path = None
 
+        self.full_data = False
+
     def add_argument_group(self, subparsers) -> None:
         lol = subparsers.add_parser(self.group)
         lol.add_argument(
@@ -84,6 +86,12 @@ class LeagueOfLegends(Tool):
             default=None
         )
 
+        lol.add_argument(
+            "--full-data", "-f",
+            help="Whether to get full data or not",
+            action="store_true"
+        )
+
     def check_arguments(self, arguments: argparse.Namespace) -> None:
         if arguments.start_date > arguments.end_date:
             raise ValueError("Start date must be before or equal to end date")
@@ -101,6 +109,7 @@ class LeagueOfLegends(Tool):
         self.region = arguments.region
         self.sheet_id = arguments.google_sheets
         self.credentials_path = arguments.google_credentials
+        self.full_data = arguments.full_data
 
     def run(self, arguments: argparse.Namespace) -> None:
         self.puuid = get_puuid(self.summoner_name, self.region)
@@ -109,7 +118,7 @@ class LeagueOfLegends(Tool):
         self.match_history = get_match_history(self.puuid, self.start_date, self.end_date)
         print_info(f"Finished getting {len(self.match_history)!r} matches.")
 
-        self.match_data = turn_data_to_dataframe(self.match_history, self.puuid)
+        self.match_data = turn_data_to_dataframe(self.match_history, self.puuid, self.full_data)
         print_info(f"Turned data into dataframe.")
         print_info(f"First 5 rows of dataframe:\n{self.match_data.head(5)}")
 
@@ -119,6 +128,9 @@ class LeagueOfLegends(Tool):
             self.match_data.to_excel(arguments.output, index=False)
 
         if arguments.google_sheets and arguments.google_credentials:
-            pass
+            print_info(f"Saving data to Google Sheets {arguments.google_sheets!r}...")
+            append_to_google_sheets(self.match_data, arguments.google_sheets, arguments.google_credentials)
+            print_success(f"Successfully saved {len(self.match_data)!r} "
+                          f"matches to Google Sheets {arguments.google_sheets!r}.")
 
         print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}.")
