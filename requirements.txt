@@ -4,3 +4,6 @@ requests~=2.31.0
 pandas
 pytz
 openpyxl
+google-auth-httplib2
+google-api-python-client
+google-auth-oauthlib

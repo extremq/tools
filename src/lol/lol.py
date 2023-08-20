@@ -23,6 +23,9 @@ class LeagueOfLegends(Tool):
         self.start_date = None
         self.end_date = None
 
+        self.sheet_id = None
+        self.credentials_path = None
+
     def add_argument_group(self, subparsers) -> None:
         lol = subparsers.add_parser(self.group)
         lol.add_argument(
@@ -65,6 +68,22 @@ class LeagueOfLegends(Tool):
             default="output.csv"
         )
 
+        lol.add_argument(
+            "--google-sheets", "-g",
+            help="The Google Sheets ID",
+            type=str,
+            dest="google_sheets",
+            default=None
+        )
+
+        lol.add_argument(
+            "--google-credentials", "-c",
+            help="The Google Credentials file",
+            type=str,
+            dest="google_credentials",
+            default=None
+        )
+
     def check_arguments(self, arguments: argparse.Namespace) -> None:
         if arguments.start_date > arguments.end_date:
             raise ValueError("Start date must be before or equal to end date")
@@ -73,10 +92,15 @@ class LeagueOfLegends(Tool):
             print_info("Start date is in the future, setting it to today")
             arguments.start_date = self.today
 
+        if bool(arguments.google_sheets) ^ bool(arguments.google_credentials):
+            raise ValueError("You need to specify both google sheets and google credentials")
+
         self.summoner_name = arguments.summoner_name
         self.start_date = arguments.start_date
         self.end_date = arguments.end_date
         self.region = arguments.region
+        self.sheet_id = arguments.google_sheets
+        self.credentials_path = arguments.google_credentials
 
     def run(self, arguments: argparse.Namespace) -> None:
         self.puuid = get_puuid(self.summoner_name, self.region)
@@ -93,5 +117,8 @@ class LeagueOfLegends(Tool):
             self.match_data.to_csv(arguments.output, index=False, encoding="utf-8")
         elif arguments.output.endswith(".xlsx"):
             self.match_data.to_excel(arguments.output, index=False)
+
+        if arguments.google_sheets and arguments.google_credentials:
+            pass
 
         print_success(f"Successfully saved {len(self.match_data)!r} matches to {arguments.output!r}.")
