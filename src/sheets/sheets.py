@@ -76,3 +76,4 @@ class Sheets(Tool):
         print_info(f"Successfully converted {self.data_file!r} to a dataframe")
 
         append_to_google_sheets(df, self.spreadsheet_id, self.credentials_path, self.sheet_name, self.unique_column)
+        print_success(f"Successfully appended the data to the spreadsheet {self.spreadsheet_id!r}")

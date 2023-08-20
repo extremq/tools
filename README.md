@@ -5,6 +5,7 @@ A collection of independent tools for various purposes.
 - [Requirements](#requirements)
 - [Money Lost](#money-lost)
 - [League of Legends Matches](#league-of-legends-matches)
+- [Sheets and Pandas](#sheets-and-pandas)
 
 # Requirements
 - `config.env`: Copy `example_config.env` and fill in the values.
@@ -83,4 +84,22 @@ Info: First 5 rows of dataframe:
 
 [5 rows x 141 columns]
 Success: Successfully saved 9 matches to 'output.csv'.
+```
+
+# Sheets and Pandas
+A tool to get or set data from a Google spreadsheet. It will only insert unique rows.
+
+You will need a Google sheets id and credentials file 
+that you can get following [this](https://docs.gspread.org/en/latest/oauth2.html#for-bots-using-service-account)
+tutorial.
+
+## Usage
+You can use the tool by running the `main.py` file with the `sheets` command.
+It will print the help message if you don't provide any arguments.
+```commandline
+> py .\main.py sheets -d output.csv -s 1Y2su-qsJoYrkLbwP7sdKPnHOPn_VcDs82uNoV -u id
+Success: Environment variables loaded successfully.
+Info: Successfully converted 'output.csv' to a dataframe
+Info: No new matches to append.
+Success: Successfully appended the data to the spreadsheet '1Y2su-qsJoYrkLbwP7sdKPnHOPn_VcDs82uNoV'
 ```
