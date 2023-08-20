@@ -114,6 +114,7 @@ def filter_match_data(match_data: dir, puuid: str, full_data: bool):
         simple_data = {
             "id": match_data["metadata"]["matchId"],
             "champion": None,
+            "date": timestamp_milis_to_date(match_data["info"]["gameStartTimestamp"]),
             "start_time": timestamp_milis_to_datetime(match_data["info"]["gameStartTimestamp"]),
             "stop_time": timestamp_milis_to_datetime(match_data["info"]["gameEndTimestamp"]),
             "duration_in_seconds": match_data["info"]["gameDuration"],
@@ -127,7 +128,7 @@ def filter_match_data(match_data: dir, puuid: str, full_data: bool):
 
         for player in match_data["info"]["participants"]:
             if player["puuid"] == puuid:
-                simple_data["kda_formatted"] = f"{player['kills']}/{player['deaths']}/{player['assists']}"
+                simple_data["kda_formatted"] = f"{player['kills']},{player['deaths']},{player['assists']}"
                 player["deaths"] = 1 if player["deaths"] == 0 else player["deaths"]
                 simple_data["kda"] = (player["kills"] + player["assists"]) / player["deaths"]
                 simple_data["win"] = player["win"]
@@ -172,7 +173,7 @@ def get_match_data(match_id: str):
 def turn_data_to_dataframe(match_ids: list[dir], puuid: str, full_data: bool):
     filtered_matches = []
 
-    with open("match_data.csv", "w", encoding="utf-8") as f:
+    with open("temporary_data.csv", "w", encoding="utf-8") as f:
         f.write("")
 
     for match_id in match_ids:
@@ -198,7 +199,10 @@ def append_to_google_sheets(dataframe: pd.DataFrame, spreadsheet_id: str, creden
     sheet_df = sheet_df.dropna(how='all')
     sheet_df = sheet_df.dropna(axis=1, how='all')
 
-    rows_to_append = new_df[~new_df['id'].isin(sheet_df['id'])]
+    if not sheet_df.empty:
+        rows_to_append = new_df[~new_df['id'].isin(sheet_df['id'])]
+    else:
+        rows_to_append = new_df
 
     if not rows_to_append.empty:
         first_empty_row = len(wks.col_values(1)) + 1

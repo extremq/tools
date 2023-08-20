@@ -38,6 +38,10 @@ You will need:
 - Start date (optional - defaults to today)
 - End date (optional - defaults to today)
 - Output file (optional - defaults to `output.csv`)
+- Google sheets id (optional, preferably a new spreadsheet)
+- Google sheets credentials file (optional)
+
+You can export your data to a Google spreadsheet by providing the google sheets id and credentials.
 
 Also, the Riot API limits the number of matches you can get to 100. For this reason,
 the tool will wait for the rate limit to reset and then get the next 100 matches.
