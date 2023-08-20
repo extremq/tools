@@ -2,9 +2,10 @@ import os
 import argparse
 from src.tool import Tool
 from src.utils import print_error, print_success, print_info
+from src.sheets.df import *
 
 
-class MoneyLost(Tool):
+class Sheets(Tool):
     @property
     def required_env_variables(self) -> set[str]:
         return {"GOOGLE_SHEETS_CONFIG_FILE"}
@@ -64,11 +65,14 @@ class MoneyLost(Tool):
             raise ValueError(f"The data file {arguments.data_file!r} is a {extension!r} file."
                              f" I only support {SUPPORTED_EXTENSIONS!r}")
 
-        self.spreadsheet_id = arguments.sheet_id
+        self.spreadsheet_id = arguments.spreadsheet_id
         self.credentials_path = os.getenv("GOOGLE_SHEETS_CONFIG_FILE")
         self.data_file = arguments.data_file
         self.sheet_name = arguments.sheet_name
         self.unique_column = arguments.unique_column
 
     def run(self, arguments: argparse.Namespace) -> None:
-        pass
+        df = convert_to_dataframe(self.data_file)
+        print_info(f"Successfully converted {self.data_file!r} to a dataframe")
+
+        append_to_google_sheets(df, self.spreadsheet_id, self.credentials_path, self.sheet_name, self.unique_column)
