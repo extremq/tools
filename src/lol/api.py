@@ -4,9 +4,6 @@ import requests
 import pandas as pd
 import time
 from src.utils import print_error, print_info
-import gspread
-import gspread_dataframe
-
 
 class RiotRateLimit(Exception):
     pass
@@ -187,26 +184,3 @@ def turn_data_to_dataframe(match_ids: list[dir], puuid: str, full_data: bool):
                                                    encoding="utf-8")
 
     return pd.DataFrame(filtered_matches)
-
-
-def append_to_google_sheets(dataframe: pd.DataFrame, spreadsheet_id: str, credentials: str):
-    gc = gspread.service_account(filename=credentials)
-    wks = gc.open_by_key(spreadsheet_id).sheet1
-
-    new_df = dataframe.copy()
-
-    sheet_df = gspread_dataframe.get_as_dataframe(wks, evaluate_formulas=True, header=0)
-    sheet_df = sheet_df.dropna(how='all')
-    sheet_df = sheet_df.dropna(axis=1, how='all')
-
-    if not sheet_df.empty:
-        rows_to_append = new_df[~new_df['id'].isin(sheet_df['id'])]
-    else:
-        rows_to_append = new_df
-
-    if not rows_to_append.empty:
-        first_empty_row = len(wks.col_values(1)) + 1
-        gspread_dataframe.set_with_dataframe(wks, rows_to_append, row=first_empty_row, col=1, include_index=False,
-                                             include_column_header=first_empty_row == 1)
-    else:
-        print_info("No new matches to append.")
