@@ -173,14 +173,17 @@ def turn_data_to_dataframe(match_ids: list[dir], puuid: str, full_data: bool):
     with open("temporary_data.csv", "w", encoding="utf-8") as f:
         f.write("")
 
+    is_first_insert = True
     for match_id in match_ids:
         match_data = get_match_data(match_id)
         filtered_match_data = filter_match_data(match_data, puuid, full_data)
         filtered_matches.append(filtered_match_data)
         pd.DataFrame([filtered_match_data]).to_csv(f"match_data.csv",
                                                    mode="a",
-                                                   header=False,
+                                                   header=is_first_insert,
                                                    index=False,
                                                    encoding="utf-8")
+
+        is_first_insert = False
 
     return pd.DataFrame(filtered_matches)
