@@ -9,13 +9,15 @@ def check_for_env_variables(required_env: set[str], group: str):
         return
 
     missing_env = required_env.difference(present_env)
-    raise Exception(f"From group {group!r}, "
-                    f"missing environment variables: {list(missing_env)!r}")
+    raise Exception(
+        f"From group {group!r}, "
+        f"missing environment variables: {list(missing_env)!r}"
+    )
 
 
 def raise_if_file_not_found(file_path: str):
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f'File not found: {file_path!r}')
+        raise FileNotFoundError(f"File not found: {file_path!r}")
 
 
 def print_error(message: str) -> None:
